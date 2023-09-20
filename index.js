@@ -44,7 +44,7 @@ async function ScrapeWebsite(){
             const $ = cheerio.load(response.data)
             var contactURL = ""
    
-            $("a").each((index,link) => {
+            $("a").each((index,link) => {    //Could search footer and header only
                 var text = $(link).text().toLowerCase()
             
                 // Check if text of every link contains 'contact' 
@@ -66,18 +66,42 @@ async function ScrapeWebsite(){
                 if (isURLhttp(contactURL)){
                     //Go straight to contact page using contactURL
                     properURL = contactURL
-        
+
                 } else if (isURLhttp(strippedArrays[i] + contactURL) && (contactURL.toLowerCase().includes("contact"))){
-                    
                     properURL = strippedArrays[i] + contactURL
-                   
-                    //If contact is found but is only a directory link
-                  
+                    //If contact is found but is only a directory link 
                 }
             }
+           // UsefulInfo.push({URL : properURL, website : strippedArrays[i]  ,isURL: true})
 
-            UsefulInfo.push({URL : properURL, website : strippedArrays[i]  ,isURL: true})
+            const contactResponse = await axios.request({
+                method: "GET",
+                url: properURL,
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+                }
+            })
 
+            const $$ = cheerio.load(contactResponse.data)
+            
+            const PhoneNumberRegex = /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/
+            const AddressRegex = /([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})/
+
+            contactInfo = {}
+            
+            $$('*').each((index,ele) => {
+                let NewEle = $(ele).text()
+                if (PhoneNumberRegex.test(NewEle)){
+                    contactInfo.PhoneNumber = NewEle
+                }
+                if (AddressRegex.test(NewEle)){
+                    contactInfo.AddressRegex = NewEle
+                }
+            })
+
+            contactInfo.contact = properURL
+
+            UsefulInfo.push(contactInfo)
 
         } catch(error) {
             console.log(error)
