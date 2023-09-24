@@ -17,6 +17,7 @@
     "is-url-http": "^2.3.6",
     "knwl.js": "^1.0.2",
     "node-fetch": "^3.3.2",
+    "postcode-validator": "^3.8.20",
     "url-exist": "^2.0.2"
   }
 }
